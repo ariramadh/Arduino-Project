@@ -1,0 +1,83 @@
+float Q, Qprev, vol, pressure, tp;
+float RC, fc, a;
+int AVf, AVf_1;
+String data1, data2;
+char data;
+String dataIn, dataArray[10], cmd;
+bool dataComplete = false, parsing = false;
+bool oneCycle;
+//variabel untuk flag
+bool start;
+int alarm;
+String startBit = Serial.print("/");
+
+int TV, RR, TV1, RR1, set, AC, tv;
+float IE, IE1, desIE, Vin;
+
+
+float plateau, peep;
+
+unsigned long t, tprev;
+float Ts;
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  fc = 15.167;
+  RC=1.0/(2*3.14159*fc);
+  a=RC/0.02;
+}
+
+void loop() {
+  t=millis();
+  baca_potensio();  
+  Ts = (t-tprev)/1000.0;
+  read_pressure(); 
+//  check_alarm();
+//  setAlarm(alarm);
+  vol += (Q * Ts/60.0)*1000.0;
+  
+  if (Serial.available() > 0) {
+    char inChar = (char)Serial.read();
+    Serial.print(inChar);
+    dataIn += inChar;
+    if (inChar == '#') {
+      parsing = true;
+    }
+
+    if (parsing) {
+      parsingData();
+      parsing = false;
+      dataIn = "";
+    }
+  }
+  tprev = t;
+
+}
+
+void parsingData() {
+  Serial.print(" Data masuk: "); Serial.println(dataIn);
+  int j = 0;
+  dataArray[j]="";
+
+  for (int i=1; i<dataIn.length(); i++){
+//    Serial.print("data parsing: ");Serial.println(dataIn[i]);
+    if ((dataIn[i]) == '#' || (dataIn[i] =='/'))
+    {
+      j++;
+      dataArray[j]="";
+    }
+    else{
+      dataArray[j] = dataArray[j]+dataIn[i];
+    }
+  }
+  
+  cmd = dataArray[0];
+  Serial.print(" Perintah \t: ");Serial.println(cmd);
+  Serial.println("");
+
+  if (cmd == "P"){
+    Serial.print(pressure);
+  }else if (cmd == "F") {
+    Serial.print("F"); Serial.print("/"); Serial.print(Q);
+  }
+}
