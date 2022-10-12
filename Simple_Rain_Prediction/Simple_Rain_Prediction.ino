@@ -36,10 +36,6 @@ unsigned long myChannelNumber = SECRET_CH_ID;
 const char * myWriteAPIKey = SECRET_WRITE_APIKEY;
 
 // Initialize our values
-int number1 = 0;
-int number2 = random(0,100);
-int number3 = random(0,100);
-int number4 = random(0,100);
 String myStatus = "";
 
 void setup() {
@@ -48,6 +44,8 @@ void setup() {
     ; // wait for serial port to connect. Needed for Leonardo native USB port only
   }
   
+  setup_sensor();
+
   WiFi.mode(WIFI_STA); 
   ThingSpeak.begin(client);  // Initialize ThingSpeak
 }
@@ -66,22 +64,11 @@ void loop() {
     Serial.println("\nConnected.");
   }
 
-  // set the fields with the values
-  ThingSpeak.setField(1, number1);
-  ThingSpeak.setField(2, number2);
-  ThingSpeak.setField(3, number3);
-  ThingSpeak.setField(4, number4);
+  bacaSensor();
 
-  // figure out the status message
-  if(number1 > number2){
-    myStatus = String("field1 is greater than field2"); 
-  }
-  else if(number1 < number2){
-    myStatus = String("field1 is less than field2");
-  }
-  else{
-    myStatus = String("field1 equals field2");
-  }
+  // set the fields with the values
+  ThingSpeak.setField(1, bacaKelembaban());
+  ThingSpeak.setField(2, bacaSuhu());
   
   // set the status
   ThingSpeak.setStatus(myStatus);
@@ -94,15 +81,6 @@ void loop() {
   else{
     Serial.println("Problem updating channel. HTTP error code " + String(x));
   }
-  
-  // change the values
-  number1++;
-  if(number1 > 99){
-    number1 = 0;
-  }
-  number2 = random(0,100);
-  number3 = random(0,100);
-  number4 = random(0,100);
   
   delay(20000); // Wait 20 seconds to update the channel again
 }

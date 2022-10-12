@@ -26,7 +26,9 @@
 #include "DHT.h"
 
 #define MIN_INTERVAL 2000 /**< min interval value */
-#define TIMEOUT -1        /**< timeout on */
+#define TIMEOUT                                                                \
+  UINT32_MAX /**< Used programmatically for timeout.                           \
+                   Not a timeout duration. Type: uint32_t. */
 
 /*!
  *  @brief  Instantiates a new DHT class
@@ -38,6 +40,7 @@
  *          number of sensors
  */
 DHT::DHT(uint8_t pin, uint8_t type, uint8_t count) {
+  (void)count; // Workaround to avoid compiler warning.
   _pin = pin;
   _type = type;
 #ifdef __AVR
@@ -164,8 +167,8 @@ float DHT::readHumidity(bool force) {
  *  @brief  Compute Heat Index
  *          Simplified version that reads temp and humidity from sensor
  *  @param  isFahrenheit
- * 					true if fahrenheit, false if celcius (default
- *true)
+ * 					true if fahrenheit, false if celcius
+ *(default true)
  *	@return float heat index
  */
 float DHT::computeHeatIndex(bool isFahrenheit) {
@@ -357,7 +360,9 @@ bool DHT::read(bool force) {
 // in the very latest IDE versions):
 //   https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/wiring_pulse.c
 uint32_t DHT::expectPulse(bool level) {
-#if (F_CPU > 16000000L)
+// F_CPU is not be known at compile time on platforms such as STM32F103.
+// The preprocessor seems to evaluate it to zero in that case.
+#if (F_CPU > 16000000L) || (F_CPU == 0L)
   uint32_t count = 0;
 #else
   uint16_t count = 0; // To work fast enough on slower AVR boards
